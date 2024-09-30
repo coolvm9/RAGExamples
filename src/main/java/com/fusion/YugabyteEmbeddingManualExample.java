@@ -173,4 +173,19 @@ public class YugabyteEmbeddingManualExample {
             throw new RuntimeException("Failed to resolve URI for: " + fileName, e);
         }
     }
+
+    private static boolean tableExists(Connection connection, String schemaName, String tableName) throws SQLException {
+    String query = "SELECT EXISTS (SELECT 1 FROM information_schema.tables " +
+                   "WHERE table_schema = ? AND table_name = ?)";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+        statement.setString(1, schemaName);
+        statement.setString(2, tableName);
+        try (ResultSet resultSet = statement.executeQuery()) {
+            if (resultSet.next()) {
+                return resultSet.getBoolean(1);
+            }
+        }
+    }
+    return false;
+}
 }
