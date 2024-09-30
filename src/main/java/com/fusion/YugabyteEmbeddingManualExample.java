@@ -40,6 +40,8 @@ public class YugabyteEmbeddingManualExample {
             String dbName = "postgres";  // Default database name
             String username = "yugabyte";  // Default username
             String password = "yugabyte";  // Default password is empty
+            String schemaName = "public";  // Default password is empty
+            String tableName = "document_embeddings";  // Default password is empty
 
             // Print connection details
             System.out.println("Connect to YugabyteDB using the following details:");
@@ -56,6 +58,13 @@ public class YugabyteEmbeddingManualExample {
 
                 // Option 1: TRUNCATE the table if it exists
                 statement.executeUpdate("TRUNCATE TABLE public.document_embeddings;");
+
+                if (tableExists(connection, schemaName, tableName)) {
+                statement.executeUpdate("TRUNCATE TABLE " + schemaName + "." + tableName + ";");
+                System.out.println("Existing data cleared from " + tableName + " table.");
+            } else {
+                System.out.println("Table " + tableName + " does not exist.");
+            }
 
                 // Option 2: DROP the table if you want to fully recreate it (uncomment this if needed)
                 // statement.executeUpdate("DROP TABLE IF EXISTS public.document_embeddings;");
