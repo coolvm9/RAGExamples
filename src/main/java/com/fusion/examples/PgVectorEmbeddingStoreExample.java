@@ -1,4 +1,4 @@
-package com.fusion;
+package com.fusion.examples;
 
 
 import dev.langchain4j.data.embedding.Embedding;

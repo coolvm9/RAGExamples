@@ -1,0 +1,52 @@
+# Yugabyte DB Connection Pool Configuration
+yugabyte:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/postgres
+    username: yugabyte
+    password: yugabyte
+    driver-class-name: org.postgresql.Driver
+    max-pool-size: 10
+    min-idle: 5
+    idle-timeout: 30000
+    connection-timeout: 30000
+    max-lifetime: 1800000
+
+  # Yugabyte-specific database settings
+  host: localhost
+  port: 5433
+  database: postgres
+  username: yugabyte
+  password: yugabyte
+  table: document_embeddings
+  dimension: 384
+
+# Server port configuration
+server:
+  port: 8081
+
+# Spring Boot configurations for logging and file uploads
+spring:
+  devtools:
+    restart:
+      enabled: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  # JPA and Hibernate settings (for SQL logging)
+  jpa:
+    show-sql: true  # Enable SQL query logging
+    properties:
+      hibernate:
+        format_sql: true  # Format SQL queries in logs
+        use_sql_comments: true  # Add comments to SQL queries
+        generate_statistics: true  # Enable query statistics
+
+# Logging configuration to capture SQL and HikariCP details
+logging:
+  level:
+    org.hibernate.SQL: debug         # Log SQL queries
+    org.hibernate.type: trace        # Log SQL query parameters
+    com.zaxxer.hikari: debug         # Log HikariCP connection pool details
+    org.postgresql: debug            # Log PostgreSQL JDBC driver details

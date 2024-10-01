@@ -1,4 +1,4 @@
-package com.fusion;
+package com.fusion.examples;
 
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
@@ -12,8 +12,9 @@ import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.utility.DockerImageName;
+
+
+import java.sql.*;
 
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -23,41 +24,58 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class PostgresEmbeddingManualExample {
+public class YugabyteEmbeddingManualExample {
 
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_RESET = "\u001B[0m";
 
     public static void main(String[] args) {
 
-        // Start the PostgreSQL container with pgvector
-        DockerImageName dockerImageName = DockerImageName.parse("pgvector/pgvector:pg16");
-        try (PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>(dockerImageName)
-                .withExposedPorts(5432)) {
-            postgreSQLContainer.start();
-
-            String host = postgreSQLContainer.getHost();
-            Integer port = postgreSQLContainer.getMappedPort(5432);
-            String dbName = postgreSQLContainer.getDatabaseName();
-            String username = postgreSQLContainer.getUsername();
-            String password = postgreSQLContainer.getPassword();
+        try {
+            String yugabyteHost = "localhost"; // Default for local setup
+            int yugabytePort = 5433;  // Default YSQL port for YugabyteDB
+            String dbName = "postgres";  // Default database name
+            String username = "yugabyte";  // Default username
+            String password = "yugabyte";  // Default password is empty
+            String schemaName = "public";  // Default password is empty
+            String tableName = "document_embeddings";  // Default password is empty
 
             // Print connection details
-            System.out.println("Connect to the database using the following details:");
-            System.out.println("Host: " + host);
-            System.out.println("Port: " + port);
+            System.out.println("Connect to YugabyteDB using the following details:");
+            System.out.println("Host: " + yugabyteHost);
+            System.out.println("Port: " + yugabytePort);
             System.out.println("Database: " + dbName);
             System.out.println("Username: " + username);
             System.out.println("Password: " + password);
 
+            // Connect to Yugabyte and drop/clean the table
+            String jdbcUrl = "jdbc:postgresql://" + yugabyteHost + ":" + yugabytePort + "/" + dbName;
+            try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
+                 Statement statement = connection.createStatement()) {
 
-            // Set up the PgVectorEmbeddingStore
+                // Option 1: TRUNCATE the table if it exists
+                statement.executeUpdate("TRUNCATE TABLE public.document_embeddings;");
+
+                if (tableExists(connection, schemaName, tableName)) {
+                statement.executeUpdate("TRUNCATE TABLE " + schemaName + "." + tableName + ";");
+                System.out.println("Existing data cleared from " + tableName + " table.");
+            } else {
+                System.out.println("Table " + tableName + " does not exist.");
+            }
+
+                // Option 2: DROP the table if you want to fully recreate it (uncomment this if needed)
+                // statement.executeUpdate("DROP TABLE IF EXISTS public.document_embeddings;");
+
+                System.out.println("Existing data cleared from document_embeddings table.");
+            }
+
+            // Set up the PgVectorEmbeddingStore (since Yugabyte uses the PostgreSQL protocol)
             EmbeddingStore<TextSegment> embeddingStore = PgVectorEmbeddingStore.builder()
-                    .host(postgreSQLContainer.getHost())
-                    .port(postgreSQLContainer.getFirstMappedPort())
-                    .database(postgreSQLContainer.getDatabaseName())
-                    .user(postgreSQLContainer.getUsername())
-                    .password(postgreSQLContainer.getPassword())
+                    .host(yugabyteHost)
+                    .port(yugabytePort)
+                    .database(dbName)
+                    .user(username)
+                    .password(password)
                     .table("document_embeddings")  // Ensure the table exists or create it
                     .dimension(384)  // Must match the dimension of the embedding model
                     .build();
@@ -152,7 +170,7 @@ public class PostgresEmbeddingManualExample {
     private static Path toPath(String fileName) {
         try {
             // Corrected path assuming files are in src/main/resources/example-files
-            URL fileUrl = ElasticSearchEmbeddingManualExample.class.getClassLoader().getResource( fileName);
+            URL fileUrl = YugabyteEmbeddingManualExample.class.getClassLoader().getResource( fileName);
             if (fileUrl == null) {
                 throw new RuntimeException("Resource not found: " + fileName);
             }
@@ -161,4 +179,19 @@ public class PostgresEmbeddingManualExample {
             throw new RuntimeException("Failed to resolve URI for: " + fileName, e);
         }
     }
+
+    private static boolean tableExists(Connection connection, String schemaName, String tableName) throws SQLException {
+    String query = "SELECT EXISTS (SELECT 1 FROM information_schema.tables " +
+                   "WHERE table_schema = ? AND table_name = ?)";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+        statement.setString(1, schemaName);
+        statement.setString(2, tableName);
+        try (ResultSet resultSet = statement.executeQuery()) {
+            if (resultSet.next()) {
+                return resultSet.getBoolean(1);
+            }
+        }
+    }
+    return false;
+}
 }

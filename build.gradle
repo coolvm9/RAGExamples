@@ -1,4 +1,6 @@
 plugins {
+    id 'org.springframework.boot' version '3.1.0'
+    id 'io.spring.dependency-management' version '1.1.0'
     id 'java'
 }
 
@@ -10,26 +12,40 @@ repositories {
 }
 
 dependencies {
-
+    // LangChain4J dependencies
     implementation 'dev.langchain4j:langchain4j-pgvector:0.35.0'
-    implementation 'org.testcontainers:postgresql:1.19.7'
-    implementation 'org.slf4j:slf4j-simple:2.0.12'
-
-    implementation 'dev.langchain4j:langchain4j-pgvector:0.35.0'
-    implementation 'org.testcontainers:postgresql:1.19.7'
     implementation 'dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2:0.35.0'
-
-
     implementation 'dev.langchain4j:langchain4j-elasticsearch:0.27.1'
     implementation 'dev.langchain4j:langchain4j:0.27.1'
-    implementation('org.apache.tika:tika-core:2.1.0')
-    implementation('org.apache.tika:tika-parsers-standard-package:2.1.0')
     implementation 'dev.langchain4j:langchain4j-document-parser-apache-pdfbox:0.27.1'
-//    implementation 'dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2:0.27.1'
+
+    // Spring Boot dependencies
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    // Spring Boot DevTools
+//    implementation 'org.springframework.boot:spring-boot-devtools'
+
+    implementation 'org.postgresql:postgresql:42.3.1'
+
+    // PostgreSQL and Connection Pooling
+    implementation 'org.testcontainers:postgresql:1.19.7'
+    implementation 'com.zaxxer:HikariCP:5.0.1'
+
+    // Remove slf4j-simple
+    // Logging (Logback is included by default with Spring Boot)
+    // implementation 'org.slf4j:slf4j-simple:2.0.12' --> Remove this
+
+    // Apache Tika for document parsing
+    implementation 'org.apache.tika:tika-core:2.1.0'
+    implementation 'org.apache.tika:tika-parsers-standard-package:2.1.0'
+
+    // CSV Handling
     implementation 'com.opencsv:opencsv:5.5.2'
 
+    // Test dependencies
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 test {

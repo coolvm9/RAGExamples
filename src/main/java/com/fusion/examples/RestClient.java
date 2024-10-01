@@ -1,4 +1,4 @@
-package com.fusion;
+package com.fusion.examples;
 
 import com.google.gson.Gson;
 import java.io.BufferedReader;
