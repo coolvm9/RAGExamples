@@ -9,6 +9,8 @@ import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.OnnxEmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.PoolingMode;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import org.slf4j.Logger;
@@ -23,14 +25,19 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @Service
-public class PDFEmbeddingProcessor {
+public class PDFEmbeddingProcessor_withMPNet {
 
-    private static final Logger logger = LoggerFactory.getLogger(PDFEmbeddingProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(PDFEmbeddingProcessor_withMPNet.class);
 
     private final EmbeddingModel embeddingModel;
 
-    public PDFEmbeddingProcessor() {
-        this.embeddingModel = new AllMiniLmL6V2EmbeddingModel();
+    public PDFEmbeddingProcessor_withMPNet() {
+
+        this.embeddingModel = new OnnxEmbeddingModel(
+                "/Users/satyaanumolu/POCs/RAGExamples/src/main/resources/onnx/all-mpnet-base-v2.onnx",
+                "/Users/satyaanumolu/POCs/RAGExamples/src/main/resources/onnx/all-mpnet-base-v2-tokenizer.json",
+                PoolingMode.MEAN
+        );
     }
 
     public void processPdfAndWriteToCsv(String pdfPath, String csvOutputPath) throws Exception {
@@ -79,13 +86,13 @@ public class PDFEmbeddingProcessor {
     public static void main(String[] args) {
         try {
             // Load the PDF from resources/examples directory
-            ClassLoader classLoader = PDFEmbeddingProcessor.class.getClassLoader();
+            ClassLoader classLoader = PDFEmbeddingProcessor_withMPNet.class.getClassLoader();
             Path pdfPath = Paths.get(classLoader.getResource("example-files/2025_US_F150_Warranty_Guide_ENG_V1.pdf").toURI());  // Adjust the file name accordingly
-            String csvOutputPath = "src/main/resources/output/embeddings.csv";
+            String csvOutputPath = "src/main/resources/output/embeddings_with_mpnet.csv";
             // Update this to where you want to save the CSV
 
             // Create an instance of the processor
-            PDFEmbeddingProcessor processor = new PDFEmbeddingProcessor();
+            PDFEmbeddingProcessor_withMPNet processor = new PDFEmbeddingProcessor_withMPNet();
 
             // Process the PDF and write to CSV
             processor.processPdfAndWriteToCsv(pdfPath.toString(), csvOutputPath);

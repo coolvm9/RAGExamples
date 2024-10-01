@@ -42,6 +42,8 @@ dependencies {
     // CSV Handling
     implementation 'com.opencsv:opencsv:5.5.2'
 
+    implementation 'com.microsoft.onnxruntime:onnxruntime:1.13.1'
+
     // Test dependencies
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
